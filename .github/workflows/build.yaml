@@ -42,7 +42,7 @@ jobs:
 
       - name: Create tag if kubelogin version is changed
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             # ${{steps.tagger.outputs.tag}} will contain the latest tag
