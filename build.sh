@@ -11,12 +11,25 @@ NDK_VERSION=r26
 KUBELOGIN_DIR=$(mktemp -d)
 git clone -b ${KUBELOGIN_VERSION} https://github.com/int128/kubelogin.git ${KUBELOGIN_DIR} --depth 1 --single-branch >/dev/null
 
-# Install the NDK
-TMPFILE=$(mktemp)
-NDKDIR=$(mktemp -d)
-curl -fSsLo ${TMPFILE} https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip
-unzip -qod ${NDKDIR} ${TMPFILE}
-rm ${TMPFILE}
+
+if [ -n "${GITHUB_WORKFLOW:-}" ]; then
+    # Use the NDK from the cache
+    NDKDIR=/opt/android-ndk
+    mkdir -p ${NDKDIR}
+else
+    NDKDIR=$(mktemp -d)
+fi
+
+if [ -d ${NDKDIR}/android-ndk-${NDK_VERSION} ]; then
+    echo "Using cached NDK"
+else
+    echo "No cached NDK, installing NDK ${NDK_VERSION}"
+    # Install the NDK
+    TMPFILE=$(mktemp)
+    curl -fSsLo ${TMPFILE} https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip
+    unzip -qod ${NDKDIR} ${TMPFILE}
+    rm ${TMPFILE}
+fi
 
 # The NDK has various Android toolchains for each API level and architecture.
 # We want to use the earliest available API level for maximum compatibility
@@ -63,4 +76,15 @@ env \
 
 cd ${RUNDIR}
 
-rm -rf ${NDKDIR} ${KUBELOGIN_DIR}
+if [ -n "${GITHUB_WORKFLOW:-}" ]; then
+    # Cache the NDK
+    cat <<__EOF__ > .buildinfo
+KUBELOGIN_VERSION=${KUBELOGIN_VERSION}
+NDK_VERSION=${NDK_VERSION}
+API_VERSION=${API_VERSION}
+__EOF__
+else
+    rm -rf ${NDKDIR}
+fi
+
+rm -rf ${KUBELOGIN_DIR}

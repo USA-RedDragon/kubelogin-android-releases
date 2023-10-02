@@ -16,10 +16,78 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get NDK version
+        id: ndk-version
+        run: |
+          set -euxo pipefail
+          cat build.sh | grep 'NDK_VERSION=' | head -n 1 >> $GITHUB_OUTPUT
+
+      - name: Restore cached NDK
+        id: cache-ndk
+        uses: actions/cache/restore@v3
+        with:
+          path: /opt/android-ndk
+          key: ${{ runner.os }}-ndk-${{ steps.ndk-version.outputs.NDK_VERSION }}
+
       - name: Build
-        run: bash build.sh
+        id: build
+        run: |
+          set -euxo pipefail
+
+          bash build.sh
+
+          # Exit if .buildinfo is empty or does not exist
+          [ -s .buildinfo ]
+
+          # Set output variables
+          for line in $(cat .buildinfo); do
+            echo "$line" >> $GITHUB_OUTPUT
+          done
+
+      - name: Save NDK
+        uses: actions/cache/save@v3
+        with:
+          path: /opt/android-ndk
+          key: ${{ steps.cache-ndk.outputs.cache-primary-key }}
+
+      - name: Find latest tag
+        id: tagger
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: jimschubert/query-tag-action@v2
+        with:
+          include: 'v*'
+          exclude: '*-rc*'
+          commit-ish: 'HEAD'
+
+      - name: Create tag if kubelogin version is changed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: kubetag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const tag = '${{steps.tagger.outputs.tag}}'
+            const version = '${{steps.build.outputs.KUBELOGIN_VERSION}}'
+
+            if (tag != version) {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/' + version,
+                sha: context.sha
+              })
+              core.setOutput('newtag', 'true')
+            } else {
+              core.setOutput('newtag', 'false')
+            }
 
       - uses: ncipollo/release-action@v1
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           artifacts: 'kubelogin-android-*'
+          tag: ${{steps.build.outputs.KUBELOGIN_VERSION}}
+          name: ${{steps.build.outputs.KUBELOGIN_VERSION}}
+          draft: false
+          body: |
+            [Kubelogin ${{steps.build.outputs.KUBELOGIN_VERSION}}](https://github.com/int128/kubelogin/releases/tag/${{steps.build.outputs.KUBELOGIN_VERSION}})
+            Minimum Android API level is ${{steps.build.outputs.API_VERSION}}
+            Cross-compiled with Android NDK ${{steps.build.outputs.NDK_VERSION}}
