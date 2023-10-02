@@ -4,7 +4,7 @@ set -euo pipefail
 
 # renovate: datasource=github-tags depName=int128/kubelogin
 KUBELOGIN_VERSION=v1.27.0
-# renovate: datasource=github-tags depName=android/ndk versioning=loose
+# renovate: datasource=github-tags depName=android/ndk versioning=semver-coerced
 NDK_VERSION=r26
 
 # Clone the repo
