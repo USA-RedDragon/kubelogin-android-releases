@@ -24,7 +24,7 @@ jobs:
 
       - name: Restore cached NDK
         id: cache-ndk
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: /opt/android-ndk
           key: ${{ runner.os }}-ndk-${{ steps.ndk-version.outputs.NDK_VERSION }}
@@ -45,7 +45,7 @@ jobs:
           done
 
       - name: Save NDK
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: /opt/android-ndk
           key: ${{ steps.cache-ndk.outputs.cache-primary-key }}
