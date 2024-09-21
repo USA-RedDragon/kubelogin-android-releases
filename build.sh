@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # renovate: datasource=github-tags depName=int128/kubelogin
-KUBELOGIN_VERSION=v1.29.0
+KUBELOGIN_VERSION=v1.30.0
 # renovate: datasource=github-tags depName=android/ndk versioning=semver-coerced
 NDK_VERSION=r26
 
