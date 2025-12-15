@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Get NDK version
         id: ndk-version
@@ -24,7 +24,7 @@ jobs:
 
       - name: Restore cached NDK
         id: cache-ndk
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: /opt/android-ndk
           key: ${{ runner.os }}-ndk-${{ steps.ndk-version.outputs.NDK_VERSION }}
@@ -45,7 +45,7 @@ jobs:
           done
 
       - name: Save NDK
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: /opt/android-ndk
           key: ${{ steps.cache-ndk.outputs.cache-primary-key }}
@@ -62,7 +62,7 @@ jobs:
       - name: Create tag if kubelogin version is changed
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: kubetag
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const tag = '${{steps.tagger.outputs.tag}}'
