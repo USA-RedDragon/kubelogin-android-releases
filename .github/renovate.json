@@ -4,10 +4,11 @@
         "local>USA-RedDragon/renovate-configs",
         "local>USA-RedDragon/renovate-configs:golang"
     ],
-    "regexManagers": [
+    "customManagers": [
         {
-            "fileMatch": [
-                "build.sh"
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/build.sh/"
             ],
             "matchStrings": [
                 "#\\s*renovate:\\s+datasource=(?<datasource>.*?)\\s+depName=(?<depName>.*?)(\\s+versioning=(?<versioning>.*?))?\\n.*(version|VERSION)\\s*(=|:)\\s*(?<currentValue>.*)"
